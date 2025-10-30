@@ -2,16 +2,22 @@ import multer from "multer";
 import fs from "fs";
 import path from "path";
 
+// ✅ Resolve absolute path so it works even if server starts from /src
+const __dirname = path.resolve();
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    let uploadPath = "uploads";
+    let uploadPath = path.join(__dirname, "uploads");
 
     if (req.originalUrl.includes("/create")) {
-      uploadPath = path.join("uploads", "attachments");
+      uploadPath = path.join(__dirname, "uploads", "attachments");
     } else if (req.originalUrl.includes("/submit")) {
-      uploadPath = path.join("uploads", "userFiles");
+      uploadPath = path.join(__dirname, "uploads", "userFiles");
+    } else {
+      uploadPath = path.join(__dirname, "uploads", "images");
     }
 
+    // ✅ Always ensure folder exists
     fs.mkdirSync(uploadPath, { recursive: true });
     cb(null, uploadPath);
   },
@@ -28,4 +34,6 @@ const fileFilter = (req, file, cb) => {
   else cb(new Error("Invalid file type"), false);
 };
 
-export default multer({ storage, fileFilter });
+const upload = multer({ storage, fileFilter });
+
+export default upload;

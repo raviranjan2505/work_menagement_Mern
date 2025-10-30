@@ -4,7 +4,9 @@ import { errorHandler } from "../utils/error.js"
 import jwt from "jsonwebtoken"
 
 export const signup = async (req, res, next) => {
-  const { name, email, password, profileImageUrl, adminJoinCode } = req.body
+  const { name, email, password, adminJoinCode } = req.body
+   const profileImageUrl = req.file ? `${req.protocol}://${req.get("host")}/uploads/images/${req.file.filename}` : "";
+  console.log(profileImageUrl,"files comes from signup")
 
   if (
     !name ||
@@ -84,62 +86,65 @@ export const signin = async (req, res, next) => {
   }
 }
 
+// ✅ Get profile
 export const userProfile = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id)
+    const user = await User.findById(req.user.id);
 
     if (!user) {
-      return next(errorHandler(404, "User not found!"))
+      return next(errorHandler(404, "User not found!"));
     }
 
-    const { password: pass, ...rest } = user._doc
-
-    res.status(200).json(rest)
+    const { password, ...rest } = user._doc;
+    res.status(200).json(rest);
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
 
+// ✅ Update profile (name, email, password, or profileImageUrl)
 export const updateUserProfile = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id)
+    const user = await User.findById(req.user.id);
+    if (!user) return next(errorHandler(404, "User not found!"));
 
-    if (!user) {
-      return next(errorHandler(404, "User not found!"))
-    }
-
-    user.name = req.body.name || user.name
-    user.email = req.body.email || user.email
+    // Update allowed fields
+    if (req.body.name) user.name = req.body.name;
+    if (req.body.email) user.email = req.body.email;
+    if (req.body.profileImageUrl) user.profileImageUrl = req.body.profileImageUrl;
 
     if (req.body.password) {
-      user.password = bcryptjs.hashSync(req.body.password, 10)
+      user.password = bcryptjs.hashSync(req.body.password, 10);
     }
 
-    const updatedUser = await user.save()
+    const updatedUser = await user.save();
 
-    const { password: pass, ...rest } = user._doc
-
-    res.status(200).json(rest)
+    const { password, ...rest } = updatedUser._doc;
+    res.status(200).json(rest);
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
 
+// ✅ Upload image and save to user profile
 export const uploadImage = async (req, res, next) => {
   try {
-    if (!req.file) {
-      return next(errorHandler(400, "No file uploaded"))
+    if (!req.file) return next(errorHandler(400, "No file uploaded"));
+
+    const imageUrl = `${req.protocol}://${req.get("host")}/uploads/images/${req.file.filename}`;
+
+    // ✅ Save uploaded image to user's profile
+    const user = await User.findById(req.user.id);
+    if (user) {
+      user.profileImageUrl = imageUrl;
+      await user.save();
     }
 
-    const imageUrl = `${req.protocol}://${req.get("host")}/uploads/${
-      req.file.filename
-    }`
-
-    res.status(200).json({ imageUrl })
+    res.status(200).json({ imageUrl });
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
 
 export const signout = async (req, res, next) => {
   try {

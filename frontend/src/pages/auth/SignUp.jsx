@@ -16,60 +16,88 @@ const SignUp = () => {
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState(null)
-  const [profilePic, setProfilePic] = useState(null)
+  const [profileImageUrl, setProfileImageUrl] = useState(null)
   const [adminInviteToken, setAdminInviteToken] = useState("")
   const [showAdminInviteToken, setShowAdminInviteToken] = useState(false)
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault()
+
+  //   let profileImageUrl = ""
+
+  //   if (!fullName) {
+  //     setError("Please enter the name")
+  //     return
+  //   }
+
+  //   if (!validateEmail(email)) {
+  //     setError("Please enter a valid email address")
+  //     return
+  //   }
+
+  //   if (!password) {
+  //     setError("Please enter the password")
+  //     return
+  //   }
+
+  //   setError(null)
+
+  //   // SignUp API call
+  //   try {
+  //     // Upload profile picture if present
+  //     if (profilePic) {
+  //       const imageUploadRes = await uploadImage(profilePic)
+  //       profileImageUrl = imageUploadRes.imageUrl || ""
+  //     }
+
+  //     const response = await axiosInstance.post("/auth/sign-up", {
+  //       name: fullName,
+  //       email,
+  //       password,
+  //       profileImageUrl,
+  //       adminJoinCode: adminInviteToken,
+  //     })
+
+  //     if (response.data) {
+  //       navigate("/login")
+  //     }
+  //   } catch (error) {
+  //     if (error.response && error.response.data.message) {
+  //       setError(error.response.data.message)
+  //       console.log(error)
+  //     } else {
+  //       setError("Something went wrong. Please try again!")
+  //     }
+  //   }
+  // }
+
+  console.log(profileImageUrl, "profile image to set")
   const handleSubmit = async (e) => {
-    e.preventDefault()
+  e.preventDefault();
 
-    let profileImageUrl = ""
-
-    if (!fullName) {
-      setError("Please enter the name")
-      return
-    }
-
-    if (!validateEmail(email)) {
-      setError("Please enter a valid email address")
-      return
-    }
-
-    if (!password) {
-      setError("Please enter the password")
-      return
-    }
-
-    setError(null)
-
-    // SignUp API call
-    try {
-      // Upload profile picture if present
-      if (profilePic) {
-        const imageUploadRes = await uploadImage(profilePic)
-        profileImageUrl = imageUploadRes.imageUrl || ""
-      }
-
-      const response = await axiosInstance.post("/auth/sign-up", {
-        name: fullName,
-        email,
-        password,
-        profileImageUrl,
-        adminJoinCode: adminInviteToken,
-      })
-
-      if (response.data) {
-        navigate("/login")
-      }
-    } catch (error) {
-      if (error.response && error.response.data.message) {
-        setError(error.response.data.message)
-        console.log(error)
-      } else {
-        setError("Something went wrong. Please try again!")
-      }
-    }
+  if (!fullName || !validateEmail(email) || !password) {
+    setError("Please fill all fields correctly");
+    return;
   }
+
+  try {
+    const formData = new FormData();
+    formData.append("name", fullName);
+    formData.append("email", email);
+    formData.append("password", password);
+    formData.append("adminJoinCode", adminInviteToken);
+    if (profileImageUrl) formData.append("image", profileImageUrl);
+
+    const response = await axiosInstance.post("/auth/sign-up", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    if (response.data) navigate("/login");
+  } catch (error) {
+    console.log(error)
+    setError(error.response?.data?.message || "Signup failed");
+  }
+};
 
   return (
     <AuthLayout>
@@ -78,9 +106,9 @@ const SignUp = () => {
           {/* Gradient top border */}
           <div className="h-2 bg-gradient-to-r from-blue-600 to-blue-400"></div>
 
-          <div className="p-8">
+          <div className="p-4">
             {/* Logo and title */}
-            <div className="text-center mb-8">
+            <div className="text-center mb-2">
               <div className="flex justify-center">
                 <div className="bg-blue-100 p-3 rounded-full">
                   <FaPeopleGroup className="text-4xl text-blue-600" />
@@ -88,19 +116,19 @@ const SignUp = () => {
               </div>
 
               <h1 className="text-2xl font-bold text-gray-800 mt-4 uppercase">
-                Join Project Flow
+                Join Work Flow
               </h1>
 
               <p className="text-gray-600 mt-1">
-                Start managing your projects efficiently
+                Start managing your Work efficiently
               </p>
             </div>
 
             {/* Login Form */}
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-2">
               <ProfilePhotoSelector
-                image={profilePic}
-                setImage={setProfilePic}
+                image={profileImageUrl}
+                setImage={setProfileImageUrl}
               />
 
               <div>

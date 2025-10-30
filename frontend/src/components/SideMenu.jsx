@@ -1,38 +1,32 @@
 import { useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
-import { signOutSuccess } from "../redux/slice/userSlice"
 import axiosInstance from "../utils/axioInstance"
+import { signOutSuccess } from "../redux/slice/userSlice"
 import { SIDE_MENU_DATA, USER_SIDE_MENU_DATA } from "../utils/data"
+import ProfileDropdown from "./ProfileDropdown"
 
 const SideMenu = ({ activeMenu }) => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
-
   const [SideMenuData, setSideMenuData] = useState([])
   const { currentUser } = useSelector((state) => state.user)
 
   const handleClick = (route) => {
-    console.log(route)
-
     if (route === "logout") {
-      handleLogut()
+      handleLogout()
       return
     }
-
     navigate(route)
   }
-  const handleLogut = async () => {
+
+  const handleLogout = async () => {
     try {
-      const response = await axiosInstance.post("/auth/sign-out")
-
-      if (response.data) {
-        dispatch(signOutSuccess())
-
-        navigate("/login")
-      }
+      await axiosInstance.post("/auth/sign-out")
+      dispatch(signOutSuccess())
+      navigate("/login")
     } catch (error) {
-      console.log(error)
+      console.error(error)
     }
   }
 
@@ -42,43 +36,34 @@ const SideMenu = ({ activeMenu }) => {
         currentUser?.role === "admin" ? SIDE_MENU_DATA : USER_SIDE_MENU_DATA
       )
     }
-
-    return () => {}
   }, [currentUser])
 
   return (
-    <div className="w-64 p-6 h-full flex flex-col lg:border-r lg:border-gray-200">
-      <div className="flex flex-col items-center mb-8">
-        <div className="w-20 h-20 rounded-full bg-gray-100 overflow-hidden mb-4 border-2 border-blue-200">
-          <img
-            src={currentUser?.profileImageUrl || null}
-            alt="Profile Image"
-            className="w-full h-full object-cover"
-          />
-        </div>
+    <div className="w-64 p-6 h-full flex flex-col lg:border-r lg:border-gray-200 bg-white">
+      <div className="flex flex-col items-center mb-8 relative">
+        <ProfileDropdown />
 
         {currentUser?.role === "admin" && (
-          <div className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full mb-2">
+          <div className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full mt-2">
             Admin
           </div>
         )}
 
-        <h5 className="text-lg font-semibold text-gray-800">
+        <h5 className="text-lg font-semibold text-gray-800 mt-1">
           {currentUser?.name || ""}
         </h5>
-
         <p className="text-sm text-gray-500">{currentUser?.email || ""}</p>
       </div>
 
-      <div className="flex-1 overscroll-y-auto">
+      <div className="flex-1 overflow-y-auto">
         {SideMenuData.map((item, index) => (
           <button
             key={`menu_${index}`}
             className={`w-full flex items-center gap-4 text-[15px] ${
               activeMenu === item.label
-                ? "text-blue-500 bg-linear-to-r from-blue-50/40 to-blue-100/50"
-                : ""
-            } py-3 px-6 mb-3 cursor-pointer`}
+                ? "text-blue-500 bg-blue-50"
+                : "text-gray-700 hover:bg-gray-100"
+            } py-3 px-6 mb-3 rounded-lg transition-all`}
             onClick={() => handleClick(item.path)}
           >
             <item.icon className="text-2xl" />

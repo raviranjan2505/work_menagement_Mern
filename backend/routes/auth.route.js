@@ -12,7 +12,7 @@ import upload from "../utils/multer.js"
 
 const router = express.Router()
 
-router.post("/sign-up", signup)
+router.post("/sign-up",upload.single("image"), signup)
 
 router.post("/sign-in", signin)
 
@@ -20,7 +20,12 @@ router.get("/user-profile", verifyToken, userProfile)
 
 router.put("/update-profile", verifyToken, updateUserProfile)
 
-router.post("/upload-image", upload.single("image"), uploadImage)
+router.post(
+  "/upload-image",
+  verifyToken,
+  upload.single("image"),
+  uploadImage
+);
 
 router.post("/sign-out", signout)
 

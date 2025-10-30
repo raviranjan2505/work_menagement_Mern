@@ -8,12 +8,9 @@ const ProfilePhotoSelector = ({ image, setImage }) => {
 
   const handleImageChange = (event) => {
     const file = event.target.files[0]
-
     if (file) {
       setImage(file)
-
       const preview = URL.createObjectURL(file)
-
       setPreviewUrl(preview)
     }
   }
@@ -23,40 +20,24 @@ const ProfilePhotoSelector = ({ image, setImage }) => {
     setPreviewUrl(null)
   }
 
-  const onChooseFile = () => {
-    inputRef.current.click()
-  }
-
   return (
     <div className="flex flex-col items-center">
-      <div className="relative mb-4">
+      <div className="relative mb-3">
         <div
           className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden cursor-pointer border-2 border-gray-300 hover:border-blue-500 transition-all"
-          onClick={onChooseFile}
+          onClick={() => inputRef.current.click()}
         >
           {previewUrl ? (
-            <img
-              src={previewUrl}
-              alt="profile pic"
-              className="w-full h-full object-cover"
-            />
+            <img src={previewUrl} alt="profile" className="w-full h-full object-cover" />
           ) : (
             <FaCamera className="text-3xl text-gray-400" />
           )}
         </div>
 
-        {!image ? (
+        {previewUrl && (
           <button
             type="button"
-            className="absolute -bottom-2 -right-2 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors"
-            onClick={onChooseFile}
-          >
-            <FaCamera className="text-sm" />
-          </button>
-        ) : (
-          <button
-            type="button"
-            className="absolute -bottom-2 -right-2 bg-red-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors"
+            className="absolute -bottom-2 -right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
             onClick={handleRemoveImage}
           >
             <MdDelete className="text-sm" />

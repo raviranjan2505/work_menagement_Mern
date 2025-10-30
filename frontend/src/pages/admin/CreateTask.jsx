@@ -37,6 +37,8 @@ const CreateTask = () => {
     setTaskData((prev) => ({ ...prev, [key]: value }));
   };
 
+  console.log(taskData.attachments, "🧩 attachments to send");
+
   const clearData = () => {
     setTaskData({
       title: "",
@@ -50,92 +52,62 @@ const CreateTask = () => {
     });
   };
 
+  // ✅ Helper: convert to FormData
+  const buildFormData = (data, prevTask = null) => {
+    const todolist = data.todoChecklist.map((item) => {
+      const matched = prevTask?.todoChecklist?.find((t) => t.task === item);
+      return { task: item, completed: matched ? matched.completed : false };
+    });
+
+    const formData = new FormData();
+    formData.append("title", data.title);
+    formData.append("description", data.description);
+    formData.append("priority", data.priority);
+    formData.append("dueDate", moment(data.dueDate).format("YYYY-MM-DD"));
+    formData.append("amount", data.amount);
+    formData.append("assignedTo", JSON.stringify(data.assignedTo));
+    formData.append("todoChecklist", JSON.stringify(todolist));
+
+    // ✅ Append only File objects (skip URLs)
+    if (Array.isArray(data.attachments)) {
+      data.attachments.forEach((file) => {
+        if (file instanceof File) {
+          formData.append("attachments", file);
+        }
+      });
+    }
+
+    return formData;
+  };
+
   // ✅ Create Task
   const createTask = async () => {
     try {
-      const todolist = taskData.todoChecklist.map((item) => ({
-        task: item,
-        completed: false,
-      }));
+      const formData = buildFormData(taskData);
+      const response = await axiosInstance.post("/tasks/create", formData);
 
-      const formData = new FormData();
-      formData.append("title", taskData.title);
-      formData.append("description", taskData.description);
-      formData.append("priority", taskData.priority);
-      formData.append("dueDate", moment(taskData.dueDate).format("YYYY-MM-DD"));
-      formData.append("amount", taskData.amount);
-      formData.append("assignedTo", JSON.stringify(taskData.assignedTo));
-      formData.append("todoChecklist", JSON.stringify(todolist));
-
-      // ✅ Add files
-      if (Array.isArray(taskData.attachments)) {
-        taskData.attachments.forEach((file) => {
-          if (file instanceof File) {
-            formData.append("attachments", file);
-          }
-        });
-      }
-
-      // 🧠 Debug log
-      console.log("🚀 Uploading files:", taskData.attachments);
-
-      const response = await axiosInstance.post("/tasks/create", formData, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-
-      console.log("✅ Task created:", response.data);
       toast.success("Task created successfully!");
       clearData();
     } catch (error) {
       console.error("❌ Error creating task:", error);
-      toast.error("Error creating task!");
+      toast.error(error.response?.data?.message || "Error creating task!");
     }
   };
 
   // ✅ Update Task
   const updateTask = async () => {
     try {
-      const todolist = taskData.todoChecklist.map((item) => {
-        const prevTodos = currentTask?.todoChecklist || [];
-        const matched = prevTodos.find((t) => t.task === item);
-        return {
-          task: item,
-          completed: matched ? matched.completed : false,
-        };
-      });
-
-      const formData = new FormData();
-      formData.append("title", taskData.title);
-      formData.append("description", taskData.description);
-      formData.append("priority", taskData.priority);
-      formData.append("dueDate", moment(taskData.dueDate).format("YYYY-MM-DD"));
-      formData.append("amount", taskData.amount);
-      formData.append("assignedTo", JSON.stringify(taskData.assignedTo));
-      formData.append("todoChecklist", JSON.stringify(todolist));
-
-      if (Array.isArray(taskData.attachments)) {
-        taskData.attachments.forEach((file) => {
-          if (file instanceof File) {
-            formData.append("attachments", file);
-          }
-        });
-      }
-
-      const res = await axiosInstance.put(`/tasks/${taskId}`, formData, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const formData = buildFormData(taskData, currentTask);
+      const response = await axiosInstance.put(`/tasks/${taskId}`, formData);
 
       toast.success("Task updated successfully!");
     } catch (error) {
       console.error("❌ Error updating task:", error);
-      toast.error("Error updating task!");
+      toast.error(error.response?.data?.message || "Error updating task!");
     }
   };
 
+  // ✅ Form Submit
   const handleSubmit = (e) => {
     e.preventDefault();
     setError("");
@@ -154,6 +126,7 @@ const CreateTask = () => {
     else createTask();
   };
 
+  // ✅ Get Task by ID
   const getTaskDetailsById = async () => {
     try {
       const res = await axiosInstance.get(`/tasks/${taskId}`);
@@ -177,6 +150,7 @@ const CreateTask = () => {
     }
   };
 
+  // ✅ Delete Task
   const deleteTask = async () => {
     try {
       await axiosInstance.delete(`/tasks/${taskId}`);
@@ -324,7 +298,9 @@ const CreateTask = () => {
               {/* Attachments */}
               <AddAttachmentsInput
                 attachments={taskData.attachments}
-                setAttachments={(v) => handleValueChange("attachments", v)}
+                setAttachments={(files) =>
+                  setTaskData((prev) => ({ ...prev, attachments: files }))
+                }
               />
 
               {/* Submit */}

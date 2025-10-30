@@ -1,34 +1,68 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FileText, X } from "lucide-react";
 
-const AddAttachmentsInput = ({ attachments = [], setAttachments }) => {
+const AddAttachmentsInput = ({ attachments, setAttachments }) => {
   const [previews, setPreviews] = useState([]);
 
+  // ✅ Always ensure attachments is an array
+  const safeAttachments = Array.isArray(attachments)
+    ? attachments
+    : attachments
+    ? Array.from(attachments)
+    : [];
+
+  // ✅ Handle file input change
   const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
+    const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
-    setAttachments((prev) => [...(prev || []), ...files]);
+    // merge files
+    const updated = [...safeAttachments, ...files];
+    setAttachments(updated);
 
     const newPreviews = files.map((file) => ({
       name: file.name,
       type: file.type,
       preview: URL.createObjectURL(file),
     }));
-    setPreviews((prev) => [...prev, ...newPreviews]);
 
-    e.target.value = ""; // reset file input (important for reselecting same file)
+    setPreviews((prev) => [...prev, ...newPreviews]);
+    e.target.value = "";
   };
 
+  // ✅ Remove a file from both previews and attachments
   const handleRemove = (index) => {
-    setAttachments((prev) => prev.filter((_, i) => i !== index));
+    const updated = safeAttachments.filter((_, i) => i !== index);
+    setAttachments(updated);
     setPreviews((prev) => prev.filter((_, i) => i !== index));
   };
+
+  // ✅ Load backend URLs if task is being edited
+  useEffect(() => {
+    if (!safeAttachments.length) {
+      setPreviews([]);
+      return;
+    }
+
+    if (safeAttachments[0] instanceof File) {
+      // already handled via handleFileChange
+      return;
+    }
+
+    // handle URL-based attachments from backend
+    const urlPreviews = safeAttachments.map((url) => ({
+      name: typeof url === "string" ? url.split("/").pop() : "File",
+      type: "application/octet-stream",
+      preview: typeof url === "string" ? url : "",
+    }));
+    setPreviews(urlPreviews);
+  }, [attachments]);
 
   return (
     <div className="w-full">
       <label className="block mb-2 text-sm font-semibold text-gray-800">
-        Attachments <span className="text-gray-500 text-xs">(PDF or Images)</span>
+        Attachments{" "}
+        <span className="text-gray-500 text-xs">(PDF or Images)</span>
       </label>
 
       <label
@@ -41,10 +75,16 @@ const AddAttachmentsInput = ({ attachments = [], setAttachments }) => {
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"
+          />
         </svg>
         <p className="text-sm text-gray-500">
-          <span className="text-blue-600 font-medium">Click to upload</span> or drag files
+          <span className="text-blue-600 font-medium">Click to upload</span> or
+          drag files
         </p>
         <input
           id="attachments"

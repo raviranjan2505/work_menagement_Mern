@@ -6,8 +6,7 @@ import jwt from "jsonwebtoken"
 export const signup = async (req, res, next) => {
   const { name, email, password, adminJoinCode } = req.body
    const profileImageUrl = req.file ? `${req.protocol}://${req.get("host")}/uploads/images/${req.file.filename}` : "";
-  console.log(profileImageUrl,"files comes from signup")
-
+ 
   if (
     !name ||
     !email ||
@@ -45,7 +44,6 @@ export const signup = async (req, res, next) => {
 
   try {
     await newUser.save()
-
     res.json("Signup successful")
   } catch (error) {
     next(error.message,"error from signup")

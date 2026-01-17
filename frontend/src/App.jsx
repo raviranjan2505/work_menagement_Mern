@@ -14,6 +14,10 @@ import MyFinance from "./pages/user/MyFinance"
 import ManageFinance from "./pages/admin/ManageFinance"
 import TaskApproval from "./pages/admin/TaskApproval"
 import { useSelector } from "react-redux"
+import ClientDashboard from "./pages/client/ClientDashboard"
+import ClientForm from "./pages/client/ClientForm"
+import ClientDetails from "./pages/client/ClientDetails"
+import ClientTrackWork from "./pages/client/ClientTrackWork"
 
 import toast, { Toaster } from "react-hot-toast"
 
@@ -43,6 +47,15 @@ const App = () => {
             <Route path="/user/task-details/:id" element={<TaskDetails />} />
           </Route>
 
+          {/* client Routes */}
+          <Route element={<PrivateRoute allowedRoles={["client"]} />}>
+            <Route path="/client/dashboard" element={<ClientDashboard />} />
+            <Route path="/client/addDetails" element={<ClientForm />} />
+            <Route path="/client/details" element={<ClientDetails />} />
+            <Route path="/client/trackwork" element={<ClientTrackWork />} />
+
+          </Route>
+
           {/* Default Route */}
           <Route path="/" element={<Root />} />
         </Routes>
@@ -55,16 +68,25 @@ const App = () => {
 
 export default App
 
+
 const Root = () => {
-  const { currentUser } = useSelector((state) => state.user)
+  const { currentUser } = useSelector((state) => state.user);
 
   if (!currentUser) {
-    return <Navigate to={"/login"} />
+    return <Navigate to="/login" />;
   }
 
-  return currentUser.role === "admin" ? (
-    <Navigate to={"/admin/dashboard"} />
-  ) : (
-    <Navigate to={"/user/dashboard"} />
-  )
-}
+  if (currentUser.role === "admin") {
+    return <Navigate to="/admin/dashboard" />;
+  }
+
+  if (currentUser.role === "user") {
+    return <Navigate to="/user/dashboard" />;
+  }
+
+  if (currentUser.role === "client") {
+    return <Navigate to="/client/dashboard" />;
+  }
+  return <Navigate to="/login" />;
+};
+

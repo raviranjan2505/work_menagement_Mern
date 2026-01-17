@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
 import axiosInstance from "../utils/axioInstance"
 import { signOutSuccess } from "../redux/slice/userSlice"
-import { SIDE_MENU_DATA, USER_SIDE_MENU_DATA } from "../utils/data"
+import { SIDE_MENU_DATA, USER_SIDE_MENU_DATA, CLIENT_SIDE_MENUDATA } from "../utils/data"
 import ProfileDropdown from "./ProfileDropdown"
 
 const SideMenu = ({ activeMenu }) => {
@@ -29,15 +29,18 @@ const SideMenu = ({ activeMenu }) => {
       console.error(error)
     }
   }
-
-  useEffect(() => {
-    if (currentUser) {
-      setSideMenuData(
-        currentUser?.role === "admin" ? SIDE_MENU_DATA : USER_SIDE_MENU_DATA
-      )
+  useEffect(()=>{
+    if(currentUser){
+      if(currentUser.role === 'admin'){
+        setSideMenuData(SIDE_MENU_DATA);
+      }
+      else if(currentUser.role ==='client'){
+        setSideMenuData(CLIENT_SIDE_MENUDATA);
+      } else{
+        setSideMenuData(USER_SIDE_MENU_DATA)
+      }
     }
-  }, [currentUser])
-
+  },[currentUser])
   return (
     <div className="w-64 p-6 h-full flex flex-col lg:border-r lg:border-gray-200 bg-white">
       <div className="flex flex-col items-center mb-8 relative">
@@ -45,7 +48,18 @@ const SideMenu = ({ activeMenu }) => {
 
         {currentUser?.role === "admin" && (
           <div className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full mt-2">
-            Admin
+            admin
+          </div>
+        )}
+
+        {currentUser?.role === "user" && (
+          <div className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full mt-2">
+            User
+          </div>
+        )}
+        {currentUser?.role === "client" && (
+          <div className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full mt-2">
+            Client
           </div>
         )}
 

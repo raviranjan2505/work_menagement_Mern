@@ -30,10 +30,9 @@ export const createTask = async (req, res) => {
       attachments,
       status: "Pending",
     });
-
     res.status(201).json({ message: "Task created successfully", task: newTask });
+
   } catch (err) {
-    console.error("Error creating task:", err);
     res.status(500).json({ message: "Server Error", error: err.message });
   }
 };
@@ -42,8 +41,6 @@ export const updateTask = async (req, res, next) => {
   try {
     const task = await Task.findById(req.params.id);
     if (!task) return next(errorHandler(404, "Task not found"));
-
-    // Parse JSON fields if they exist in req.body
     const assignedTo = req.body.assignedTo 
       ? (typeof req.body.assignedTo === 'string' ? JSON.parse(req.body.assignedTo) : req.body.assignedTo)
       : task.assignedTo;
@@ -51,8 +48,6 @@ export const updateTask = async (req, res, next) => {
     const todoChecklist = req.body.todoChecklist 
       ? (typeof req.body.todoChecklist === 'string' ? JSON.parse(req.body.todoChecklist) : req.body.todoChecklist)
       : task.todoChecklist;
-
-    // Handle file uploads if there are new files
     let attachments = [...task.attachments];
     if (req.files && req.files.length > 0) {
       const newAttachments = req.files.map(
@@ -60,8 +55,6 @@ export const updateTask = async (req, res, next) => {
       );
       attachments = [...attachments, ...newAttachments];
     }
-
-    // Update task with new data
     Object.assign(task, {
       title: req.body.title || task.title,
       description: req.body.description || task.description,
@@ -80,26 +73,20 @@ export const updateTask = async (req, res, next) => {
   }
 };
 
-// Get tasks (user or admin)
 export const getTasks = async (req, res, next) => {
   try {
     const { status } = req.query;
     let filter = status ? { status } : {};
-
     let tasks;
     if (req.user.role === "admin") {
       tasks = await Task.find(filter).populate("assignedTo", "name email profileImageUrl");
     } else {
       tasks = await Task.find({ ...filter, assignedTo: req.user.id }).populate("assignedTo", "name email profileImageUrl");
     }
-
-    // Add completedCount to each task
     tasks = tasks.map(task => {
       const completedCount = task.todoChecklist.filter(item => item.completed).length;
       return { ...task._doc, completedCount };
     });
- // status summary count
-
     const allTasks = await Task.countDocuments(
       req.user.role === "admin" ? {} : { assignedTo: req.user.id }
     )
@@ -107,8 +94,6 @@ export const getTasks = async (req, res, next) => {
     const pendingTasks = await Task.countDocuments({
       ...filter,
       status: "Pending",
-      //   if logged in user is not admin then add assignedTo filter
-      //  if logged in user is an admin then nothing to do, just count
       ...(req.user.role !== "admin" && { assignedTo: req.user.id }),
     })
 
@@ -138,7 +123,6 @@ export const getTasks = async (req, res, next) => {
   }
 };
 
-// Get task by ID
 export const getTaskById = async (req, res, next) => {
   try {
     const task = await Task.findById(req.params.id).populate("assignedTo", "name email profileImageUrl");
@@ -150,8 +134,6 @@ export const getTaskById = async (req, res, next) => {
 };
 
 
-
-// Delete task
 export const deleteTask = async (req, res, next) => {
   try {
     const task = await Task.findById(req.params.id);
@@ -163,12 +145,10 @@ export const deleteTask = async (req, res, next) => {
   }
 };
 
-// Update task status
 export const updateTaskStatus = async (req, res, next) => {
   try {
     const task = await Task.findById(req.params.id);
     if (!task) return next(errorHandler(404, "Task not found"));
-
     if (!task.assignedTo.includes(req.user.id) && req.user.role !== "admin") {
       return next(errorHandler(403, "Unauthorized"));
     }
@@ -183,7 +163,6 @@ export const updateTaskStatus = async (req, res, next) => {
   }
 };
 
-// Update checklist
 export const updateTaskChecklist = async (req, res, next) => {
   try {
     const { todoChecklist } = req.body;
@@ -207,7 +186,6 @@ export const updateTaskChecklist = async (req, res, next) => {
   }
 };
 
-// User submits task completion file
 export const uploadTaskCompletion = async (req, res, next) => {
   try {
     const task = await Task.findById(req.params.taskId);
@@ -220,7 +198,7 @@ export const uploadTaskCompletion = async (req, res, next) => {
 
     task.userFiles.push(fileUrl);
     task.status = "Completed";
-    task.earningStatus = "Pending"; // waiting admin approval
+    task.earningStatus = "Pending"; 
     await task.save();
 
     res.status(200).json({ message: "Task submitted for review", task });
@@ -230,7 +208,6 @@ export const uploadTaskCompletion = async (req, res, next) => {
 };
 
 
-// Admin approves task earning
 export const approveTaskEarning = async (req, res, next) => {
   try {
     const task = await Task.findById(req.params.taskId).populate("assignedTo");
@@ -260,14 +237,11 @@ export const approveTaskEarning = async (req, res, next) => {
 };
 
 
-
-// 🟢 Get all completed tasks (for admin or user)
 export const getCompletedTasks = async (req, res, next) => {
   try {
     let filter = { status: "Completed" };
 
     if (req.user.role !== "admin") {
-      // user can only see their completed tasks
       filter.assignedTo = req.user.id;
     }
 
@@ -285,7 +259,6 @@ export const getCompletedTasks = async (req, res, next) => {
   }
 };
 
-// ❌ Admin rejects a submitted task
 export const rejectTaskSubmission = async (req, res, next) => {
   try {
     const task = await Task.findById(req.params.taskId).populate("assignedTo");
@@ -297,8 +270,6 @@ export const rejectTaskSubmission = async (req, res, next) => {
     task.earningStatus = "Rejected";
     task.status = "Rejected";
     await task.save();
-
-    // Optional: Notify user or log rejection in transactions
     for (const user of task.assignedTo) {
       await Transaction.create({
         user: user._id,

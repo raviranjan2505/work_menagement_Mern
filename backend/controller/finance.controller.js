@@ -4,7 +4,7 @@ import Withdrawal from '../models/withdrawal.model.js';
 import Transaction from '../models/transaction.model.js';
 import { errorHandler } from '../utils/error.js';
 
-// Admin approves task earning (supports multiple assigned users)
+
 export const approveTaskEarning = async (req, res, next) => {
   try {
     const { taskId } = req.params;
@@ -36,7 +36,6 @@ export const approveTaskEarning = async (req, res, next) => {
   }
 };
 
-// User requests withdrawal
 export const requestWithdrawal = async (req, res, next) => {
   try {
     const { amount } = req.body;
@@ -55,7 +54,7 @@ export const requestWithdrawal = async (req, res, next) => {
   }
 };
 
-// Get all withdrawal requests (Admin only)
+
 export const getAllWithdrawals = async (req, res, next) => {
   try {
     const withdrawals = await Withdrawal.find()
@@ -68,7 +67,7 @@ export const getAllWithdrawals = async (req, res, next) => {
   }
 };
 
-// Admin approves withdrawal
+
 export const approveWithdrawal = async (req, res, next) => {
   try {
     const { withdrawalId } = req.params;
@@ -99,7 +98,6 @@ export const approveWithdrawal = async (req, res, next) => {
   }
 };
 
-// Admin rejects withdrawal
 export const rejectWithdrawal = async (req, res, next) => {
   try {
     const { withdrawalId } = req.params;
@@ -116,7 +114,6 @@ export const rejectWithdrawal = async (req, res, next) => {
   }
 };
 
-// User finance overview
 export const getUserFinance = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
@@ -135,7 +132,6 @@ export const getUserFinance = async (req, res, next) => {
   }
 };
 
-// Admin finance overview
 export const getAdminFinance = async (req, res, next) => {
   try {
     const users = await User.find().select('name email wallet');

@@ -2,9 +2,6 @@ import excelJs from 'exceljs';
 import Task from '../models/task.model.js';
 import User from '../models/user.model.js';
 
-// ---------------------
-// Export all tasks report
-// ---------------------
 export const exportTaskReport = async (req, res, next) => {
   try {
     const tasks = await Task.find().populate('assignedTo', 'name email');
@@ -55,9 +52,6 @@ export const exportTaskReport = async (req, res, next) => {
   }
 };
 
-// ---------------------
-// Export all users report
-// ---------------------
 export const exportUsersReport = async (req, res, next) => {
   try {
     const users = await User.find().select('name email _id').lean();

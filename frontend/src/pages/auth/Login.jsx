@@ -58,7 +58,11 @@ const Login = () => {
       if (response.data.role === "admin") {
         dispatch(signInSuccess(response.data))
         navigate("/admin/dashboard")
-      } else {
+      } 
+      else if(response.data.role === "client"){
+        dispatch(signInSuccess(response.data))
+        navigate("/client/dashboard")
+      }else {
         dispatch(signInSuccess(response.data))
         navigate("/user/dashboard")
       }

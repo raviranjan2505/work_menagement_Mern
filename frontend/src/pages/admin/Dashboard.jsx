@@ -60,7 +60,7 @@ const Dashboard = () => {
     <DashboardLayout activeMenu="Dashboard">
       <div className="p-6 space-y-6">
         {/* 🟦 Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-6 shadow-lg text-white">
+        <div className="bg-gradient-to-r from-red-800 to-red-900 rounded-xl p-6 shadow-lg text-white">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-2xl md:text-3xl font-bold">

@@ -53,6 +53,8 @@ export const SIDE_MENU_DATA = [
 ]
 
 
+
+
 export const USER_SIDE_MENU_DATA = [
   {
     id: 1,
@@ -90,4 +92,39 @@ export const STATUS_DATA = [
   { label: "Pending", value: "Pending" },
   { label: "In Progress", value: "In Progress" },
   { label: "Completed", value: "Completed" },
+]
+
+
+export const CLIENT_SIDE_MENUDATA = [
+  {
+    id: 1,
+    label: "Dashboard",
+    icon: MdDashboardCustomize,
+    path: "/client/dashboard",
+  },
+  {
+    id:2,
+    label: "Add Details",
+    icon: MdOutlineTaskAlt,
+    path: "/client/addDetails"
+  },
+  {
+    id:3,
+    label: "Your Details",
+    icon: MdOutlineTaskAlt,
+    path: "/client/details"
+  },
+  {
+    id:4,
+    label: "Track Work",
+    icon: MdOutlineTaskAlt,
+    path: "/client/trackwork"
+
+  },
+  {
+    id: 5,
+    label: "Logout",
+    icon: MdLogout,
+    path: "logout",
+  },
 ]

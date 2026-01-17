@@ -18,12 +18,9 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-
-    // ⚠️ Only set Content-Type automatically if not multipart
     if (!(config.data instanceof FormData)) {
       config.headers["Content-Type"] = "application/json";
     } else {
-      // Let the browser set multipart boundary automatically
       delete config.headers["Content-Type"];
     }
 

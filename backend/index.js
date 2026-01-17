@@ -13,6 +13,7 @@ import userRoutes from "./routes/user.route.js";
 import taskRoutes from "./routes/task.route.js";
 import reportRoutes from "./routes/report.route.js";
 import financeRoutes from "./routes/finance.route.js";
+import clientRoutes from "./routes/client.route.js";
 
 // Utils
 import { errorHandler } from "./utils/error.js";
@@ -40,6 +41,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/finance", financeRoutes);
+app.use("/api/client", clientRoutes);
 
 // Error middleware
 app.use((err, req, res, next) => {

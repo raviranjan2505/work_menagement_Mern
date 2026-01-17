@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import DashboardLayout from "../../components/DashboardLayout";
 import axiosInstance from "../../utils/axioInstance";
-import { useParams } from "react-router-dom";
 
 const ClientDetails = () => {
   const { currentUser } = useSelector((state) => state.user);
-    const id = currentUser._id;
+  const clientId = currentUser?._id;
 
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     clientName: "",
     businessType: "",
@@ -22,33 +22,48 @@ const ClientDetails = () => {
     documents: [],
   });
 
-  const [loading, setLoading] = useState(true);
-
-  // 🔹 Fetch Client Details
+  // 🔹 Fetch client details
   const getClientDetails = async () => {
     try {
-      const res = await axiosInstance.get(`/client/details/${id}`);
+      const res = await axiosInstance.get(`/client/details/${clientId}`);
+
+      const client = res.data.client[0];
+
+      console.log(res)
+
       setFormData({
-        ...res.data.client,
+        clientName: client.clientName || "",
+        businessType: client.businessType || "",
+        pan: client.pan || "",
+        aadhaar: client.aadhaar || "",
+        gst: client.gst || "",
+        email: client.email || "",
+        mobile: client.mobile || "",
+        address: client.address || "",
+        contactPerson: client.contactPerson || "",
+        natureOfBusiness: client.natureOfBusiness || "",
         documents: [],
       });
+
       setLoading(false);
-    } catch (err) {
-      console.error("❌ Error fetching client:", err);
+    } catch (error) {
+      console.error("❌ Fetch Error:", error);
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    getClientDetails();
-  }, [id]);
+    if (clientId) {
+      getClientDetails();
+    }
+  }, [clientId]);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === "documents") {
-      setFormData({ ...formData, documents: files });
+      setFormData((prev) => ({ ...prev, documents: files }));
     } else {
-      setFormData({ ...formData, [name]: value });
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
@@ -68,11 +83,11 @@ const ClientDetails = () => {
     });
 
     try {
-      await axiosInstance.put(`/client/update/${id}`, data);
+      await axiosInstance.put(`/client/${clientId}`, data);
       alert("✅ Client details updated successfully!");
-    } catch (err) {
-      console.error("❌ Error updating client:", err);
-      alert("Something went wrong");
+    } catch (error) {
+      console.error("❌ Update Error:", error);
+      alert("Update failed");
     }
   };
 
@@ -127,7 +142,8 @@ const ClientDetails = () => {
 
 export default ClientDetails;
 
-// Reusable Inputs
+
+// 🔹 Reusable Inputs
 const Input = ({ label, ...props }) => (
   <div>
     <label className="text-sm text-gray-600">{label}</label>
